@@ -41,10 +41,13 @@ body {
   z-index: 1000;
   transition: opacity 1s ease;
 }
+
 #loader.hidden { opacity: 0; pointer-events: none; }
+
 #loader h1 { margin: 0; font-size: 5vw; }
 #loader h2 { margin: 0; font-size: 5vw; }
 #loader h3 { margin: 0; font-size: 5vw; }
+
 #loader .progress-bar {
   width: 60%;
   height: 20px;
@@ -54,6 +57,7 @@ body {
   border: 2px solid #fff;
   margin-top: 20px;
 }
+
 #loader .progress-bar-inner {
   width: 0%;
   height: 100%;
@@ -100,22 +104,13 @@ body {
 .card-container { background: #2c3e50; padding: 30px; border-radius: 25px; width: 85%; max-width: 500px; border: 5px solid #fff; position: relative; max-height: 80vh; overflow-y: auto; }
 .close-x { position: absolute; top: -15px; right: -15px; background: var(--red-btn); width: 40px; height: 40px; border-radius: 50%; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 0 var(--red-shd); }
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
-.brawler-card { padding: 10px; border-radius: 15px; cursor: pointer; color: white; border: 3px solid #000; display: flex; flex-direction: column; align-items: center; transition: transform 0.1s; }
-.brawler-card:hover { transform: scale(1.05); }
-
-/* Colores según categoría */
-.brawler-inicial { background: #33CCFF; }
-.brawler-especial { background: #3FD33E; }
-.brawler-superespecial { background: #1A66CC; }
-.brawler-epico { background: #FF00FF; }
-.brawler-mitico { background: #A52019; }
-.brawler-legendario { background: #FFFF00; color: black; }
-.brawler-ultralegendario { background: rgb(255,255,255); color: black; }
+.brawler-card { padding: 10px; border-radius: 15px; border: 3px solid #000; cursor: pointer; color:white; }
+.brawler-card img { width: 100%; border-radius: 10px; }
 
 /* --- SUBMODOS SUPERVIVENCIA --- */
 .submode-panel { position: absolute; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; align-items: center; opacity: 0; transform: translateY(50px); transition: all 0.4s ease-out; z-index: 600; }
 .submode-panel.show { opacity: 1; transform: translateY(0); }
-.submode-panel button { min-width: 140px; font-size: 18px; padding: 15px 25px; border-radius: 20px; }
+.submode-panel button { min-width: 140px; font-size: 18px; padding: 15px 25px; }
 
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
@@ -194,8 +189,32 @@ body {
   <div class="card-container">
     <span class="close-x" onclick="toggleModal('brawlers-modal', false)">×</span>
     <h2>BRAWLERS</h2>
-    <div id="brawlers-container" style="max-height: 60vh; overflow-y: auto;">
-      <!-- Cartas se generan automáticamente -->
+    <div id="brawlers-container" style="max-height: 60vh; overflow-y: auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL TIENDA -->
+<div id="modal-tienda" class="modal">
+  <div class="card-container">
+    <span class="close-x" onclick="toggleModal('modal-tienda', false)">×</span>
+    <h2>Tienda</h2>
+    <div class="grid" style="margin-top:20px;">
+      <div class="brawler-card" style="background:#FFD700;" onclick="buyItem('coins', 100)">
+        <div>💰 100 Monedas</div>
+        <button class="brawl-btn btn-green" style="margin-top:5px;">Comprar</button>
+      </div>
+      <div class="brawler-card" style="background:#B9F2FF;color:black;" onclick="buyItem('gems', 10)">
+        <div>💎 10 Gemas</div>
+        <button class="brawl-btn btn-blue" style="margin-top:5px;">Comprar</button>
+      </div>
+      <div class="brawler-card" style="background:#FF69B4;color:white;" onclick="buyItem('coins', 500)">
+        <div>💰 500 Monedas</div>
+        <button class="brawl-btn btn-green" style="margin-top:5px;">Comprar</button>
+      </div>
+      <div class="brawler-card" style="background:#FFD700;color:black;" onclick="buyItem('gems', 50)">
+        <div>💎 50 Gemas</div>
+        <button class="brawl-btn btn-blue" style="margin-top:5px;">Comprar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -249,43 +268,39 @@ const categories = {
   "Legendario":["Spike","Crow","Leon","Sandy","Amber","Meg","Surge","Chester","Cordelius","Kit","Draco","Kenji","Pierce"],
   "Ultra Legendario":["Kaze","Sirius"]
 };
+const colors = {
+  "Inicial":"#33CCFF",
+  "Especial":"#3FD33E",
+  "Super Especial":"#1A66CC",
+  "Épico":"#FF00FF",
+  "Mítico":"#A52019",
+  "Legendario":"#FFFF00",
+  "Ultra Legendario":"rgb(255,165,0)"
+};
 
-// --- GENERAR CARTAS ---
-for(const cat in categories){
-  let catDiv = document.createElement('div');
-  catDiv.innerHTML = `<h3>${cat}</h3>`;
-  let grid = document.createElement('div'); grid.className='grid';
-  categories[cat].forEach(b => {
-    let card = document.createElement('div'); 
-    card.className='brawler-card';
-
-    // Asignar color
-    switch(cat){
-      case "Inicial": card.classList.add('brawler-inicial'); break;
-      case "Especial": card.classList.add('brawler-especial'); break;
-      case "Super Especial": card.classList.add('brawler-superespecial'); break;
-      case "Épico": card.classList.add('brawler-epico'); break;
-      case "Mítico": card.classList.add('brawler-mitico'); break;
-      case "Legendario": card.classList.add('brawler-legendario'); break;
-      case "Ultra Legendario": card.classList.add('brawler-ultralegendario'); break;
-    }
-
-    card.innerHTML = `<div>${b}</div>`; 
-    card.onclick = () => { 
-      document.getElementById('main-name').textContent = b.toUpperCase();
-      // Aquí podrías añadir la imagen si tienes URLs
-      document.getElementById('main-img').src = ""; 
-      toggleModal('brawlers-modal', false);
-    };
-    grid.appendChild(card);
+for(let cat in categories){
+  categories[cat].forEach(name=>{
+    let div = document.createElement('div');
+    div.className = 'brawler-card';
+    div.style.background = colors[cat];
+    div.textContent = name;
+    div.onclick = ()=>selectBrawler(name, colors[cat]);
+    brawlersContainer.appendChild(div);
   });
-  catDiv.appendChild(grid);
-  brawlersContainer.appendChild(catDiv);
 }
 
-// --- INICIALIZAR BRAWLER PRINCIPAL ---
-document.getElementById('main-name').textContent = "SHELLY";
+function selectBrawler(name, color){
+  document.getElementById('main-name').textContent = name.toUpperCase();
+  document.getElementById('main-img').style.background = color;
+}
+  
+// --- TIENDA ---
+function buyItem(type, amount){
+  let el = document.getElementById(type);
+  let current = parseInt(el.textContent);
+  el.textContent = current + amount;
+  alert(`¡Has comprado ${amount} ${type === 'coins' ? 'monedas' : 'gemas'}!`);
+}
 </script>
-
 </body>
 </html>
